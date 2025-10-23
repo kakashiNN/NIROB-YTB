@@ -1,8 +1,20 @@
 {
-  "name": "ghop ghop ampi",
+  "name": "youtube-api",
   "version": "1.0.0",
-  "type": "module",
+  "description": "API to get YouTube video URL by title",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
   "dependencies": {
-    "axios": "^1.6.7"
+    "express": "^4.17.1",
+    "axios": "^0.21.1"
+  },
+  "engines": {
+    "node": "16.x"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
   }
 }
