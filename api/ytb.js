@@ -6,26 +6,20 @@ const app = express();
 const YOUTUBE_API_KEY = 'AIzaSyCrbVO6J2e5xG4g11igE5wG35sWhDHNsAc';
 
 app.get('/video', async (req, res) => {
-  const { url } = req.query;
+  const { title } = req.query;
   
-  if (!url) {
-    return res.status(400).json({ status: 'error', message: 'Missing url parameter' });
-  }
-
-  // Extract video ID from the URL (assuming it's a YouTube URL)
-  const videoId = extractVideoId(url);
-  
-  if (!videoId) {
-    return res.status(400).json({ status: 'error', message: 'Invalid YouTube URL' });
+  if (!title) {
+    return res.status(400).json({ status: 'error', message: 'Missing title parameter' });
   }
 
   try {
-    // Make request to YouTube Data API to get video details
-    const response = await axios.get(`https://www.googleapis.com/youtube/v3/videos`, {
+    // Make request to YouTube Data API to search for videos by title
+    const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
       params: {
-        part: 'snippet,contentDetails,statistics',  // Specify what info you want
-        id: videoId,
-        key: AIzaSyCrbVO6J2e5xG4g11igE5wG35sWhDHNsAc
+        part: 'snippet',
+        q: title,  // Search query is the title
+        type: 'video',  // Ensure we are searching for videos
+        key: YOUTUBE_API_KEY
       }
     });
 
@@ -33,25 +27,19 @@ app.get('/video', async (req, res) => {
       return res.status(404).json({ status: 'error', message: 'Video not found' });
     }
 
-    // Extract the direct video URL (YouTube embed URL or standard URL)
+    // Get the first video result from the search
     const video = response.data.items[0];
-    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;  // Standard YouTube URL
-    
-    // Send only the direct video URL back to the client
-    res.json({ videoUrl });
+    const videoId = video.id.videoId;  // Extract video ID from the search result
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;  // Construct the video URL
+
+    // Send back the direct video URL
+    res.json({ videoUrl, title: video.snippet.title });
 
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 'error', message: 'An error occurred' });
   }
 });
-
-// Utility function to extract video ID from URL
-function extractVideoId(url) {
-  const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S+?[\?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
-}
 
 app.listen(3000, () => { 
   console.log("API is running on http://localhost:3000"); 
